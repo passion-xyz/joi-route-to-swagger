@@ -189,14 +189,6 @@ function addResponseExample(sharedSchemas, routeDef, route) {
 }
 
 function buildSwaggerRequest(docEntity, routeEntity, tag, basePath, routeDef) {
-  const action = _.isArray(routeDef.action)
-    ? routeDef.action[routeDef.action.length - 1]
-    : routeDef.action;
-  const actionName = action.name;
-  if (!actionName) {
-    return;
-  }
-
   const routePaths = docEntity.paths;
   const pathParams = [];
   const pathComponents = (basePath + routeDef.path)
@@ -244,7 +236,6 @@ function buildModuleRoutes(docEntity, routeEntity, moduleRoutes) {
     description: moduleRoutes.description || moduleId,
   };
   const found = _.find(docEntity.tags, { name: tagObject.name });
-  console.log(docEntity.tags);
   if (!found) {
     docEntity.tags.push(tagObject);
   }
