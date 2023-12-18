@@ -210,6 +210,7 @@ function buildSwaggerRequest(docEntity, routeEntity, tag, basePath, routeDef) {
   swaggerReq.tags.push(tag);
   swaggerReq.summary = routeDef.summary;
   swaggerReq.description = routeDef.description;
+  swaggerReq.security = routeDef.security;
   if (routeDef.deprecated) {
     swaggerReq.deprecated = routeDef.deprecated;
   }
