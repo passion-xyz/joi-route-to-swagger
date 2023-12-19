@@ -97,7 +97,13 @@ function addRouteParameters(sharedSchemas, route, validators, position) {
   _.forEach(joiJsonSchema.properties, (schema, field) => {
     const paramObj = _convertJsonSchemaToParamObj(joiJsonSchema, field);
 
-    paramObj.in = position;
+    if (position === "queryStringParameters") {
+      paramObj.in = "query";
+    } else if (position === "pathParameters") {
+      paramObj.in = "path";
+    } else {
+      paramObj.in = position;
+    }
     route.parameters.push(paramObj);
   });
 }
@@ -222,7 +228,14 @@ function buildSwaggerRequest(docEntity, routeEntity, tag, basePath, routeDef) {
 
   addRequestPathParams(sharedSchemas, swaggerReq, pathParams, validators);
   addRouteParameters(sharedSchemas, swaggerReq, validators, "query");
+  addRouteParameters(
+    sharedSchemas,
+    swaggerReq,
+    validators,
+    "queryStringParameters",
+  );
   addRouteParameters(sharedSchemas, swaggerReq, validators, "header");
+  addRouteParameters(sharedSchemas, swaggerReq, validators, "pathParameters");
   addRequestBodyParams(sharedSchemas, swaggerReq, validators);
 
   addResponseExample(sharedSchemas, routeDef, swaggerReq);
@@ -255,6 +268,45 @@ function buildModuleRoutes(docEntity, routeEntity, moduleRoutes) {
 function convert(allModuleRoutes, docSkeleton, routeSkeleton) {
   const docEntity = _.assign({}, DOC_ROOT_TEMPLATE, docSkeleton);
   const routeEntity = _.assign({}, ROUTE_DEF_TEMPLATE, routeSkeleton);
+
+  _.each(allModuleRoutes, (endpoint, endpointIndex) => {
+    _.each(endpoint.routes, (route, routeIndex) => {
+      const pathParameters = _.get(route, "validators.pathParameters");
+      allModuleRoutes[endpointIndex].routes[routeIndex].parameters =
+        allModuleRoutes[endpointIndex].routes[routeIndex].parameters || [];
+
+      if (pathParameters) {
+        _.each(
+          _.get(pathParameters, "$_terms.keys"),
+          ({ key, schema: { _flags: presence } }) => {
+            allModuleRoutes[endpointIndex].routes[routeIndex].parameters.push({
+              in: "path",
+              name: key,
+              schema: route.validators.pathParameters.extract(key),
+              required: presence === "required",
+            });
+          },
+        );
+      }
+      const queryStringParameters = _.get(
+        route,
+        "validators.queryStringParameters",
+      );
+      if (queryStringParameters) {
+        _.each(
+          _.get(queryStringParameters, "$_terms.keys"),
+          ({ key, schema: { _flags: presence } }) => {
+            allModuleRoutes[endpointIndex].routes[routeIndex].parameters.push({
+              in: "path",
+              name: key,
+              schema: route.validators.queryStringParameters.extract(key),
+              required: presence === "required",
+            });
+          },
+        );
+      }
+    });
+  });
 
   _.forEach(allModuleRoutes, (moduleRoutes) => {
     buildModuleRoutes(docEntity, routeEntity, moduleRoutes);
