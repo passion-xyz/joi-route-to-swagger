@@ -1,57 +1,6 @@
 const _ = require("lodash");
 const joi2json = require("joi-to-json");
 
-const DOC_ROOT_TEMPLATE = {
-  openapi: "3.0.1",
-  info: {
-    description: "API Docs",
-    version: "1.0.0",
-    title: "API Docs",
-  },
-  servers: [
-    {
-      url: "http://localhost/",
-    },
-  ],
-  tags: [],
-  paths: {},
-  components: {
-    schemas: {
-      Error: {
-        type: "object",
-        required: ["code", "err"],
-        properties: {
-          code: {
-            type: "string",
-          },
-          err: {
-            type: "string",
-          },
-        },
-      },
-    },
-  },
-};
-
-const ROUTE_DEF_TEMPLATE = {
-  tags: [],
-  summary: "",
-  description: "",
-  parameters: [],
-  responses: {
-    500: {
-      description: "When Server takes a nap.",
-      content: {
-        "application/json": {
-          schema: {
-            $ref: "#/components/schemas/Error",
-          },
-        },
-      },
-    },
-  },
-};
-
 function _messageDescriptionWithExample(schema) {
   if (!schema.description) {
     schema.description = "";
@@ -266,6 +215,57 @@ function buildModuleRoutes(docEntity, routeEntity, moduleRoutes) {
 }
 
 function convert(allModuleRoutes, docSkeleton, routeSkeleton) {
+  const DOC_ROOT_TEMPLATE = {
+    openapi: "3.0.1",
+    info: {
+      description: "API Docs",
+      version: "1.0.0",
+      title: "API Docs",
+    },
+    servers: [
+      {
+        url: "http://localhost/",
+      },
+    ],
+    tags: [],
+    paths: {},
+    components: {
+      schemas: {
+        Error: {
+          type: "object",
+          required: ["code", "err"],
+          properties: {
+            code: {
+              type: "string",
+            },
+            err: {
+              type: "string",
+            },
+          },
+        },
+      },
+    },
+  };
+
+  const ROUTE_DEF_TEMPLATE = {
+    tags: [],
+    summary: "",
+    description: "",
+    parameters: [],
+    responses: {
+      500: {
+        description: "When Server takes a nap.",
+        content: {
+          "application/json": {
+            schema: {
+              $ref: "#/components/schemas/Error",
+            },
+          },
+        },
+      },
+    },
+  };
+
   const docEntity = _.assign({}, DOC_ROOT_TEMPLATE, docSkeleton);
   const routeEntity = _.assign({}, ROUTE_DEF_TEMPLATE, routeSkeleton);
 
